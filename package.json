@@ -1,6 +1,9 @@
 {
-    "name": "node_service",
+    "name": "fitnet_node_service",
     "version": "0.0.1",
+    "scripts": {
+        "start": "node app.js"
+    },
     "dependencies": {
         "express": "^4.16.2",
         "lodash": "^4.17.5",
