@@ -115,13 +115,10 @@ var createMessage = function(message) {
 
 //Lancement du serveur node sur le port 3123
 server.listen(3123, function() {
+    var interval = process.env.INTERVAL !== undefined ? process.env.INTERVAL : 60000;
     logger.info('Lancement de l\'application sur le port 3123')
-        //FOR TEST
-    redisClient.get('nbMissions', function(err, reply) {
-        redisClient.set('nbMissions', reply - 1);
-    });
 
     setInterval(function() {
         getMissions();
-    }, 20000)
+    }, interval)
 });
