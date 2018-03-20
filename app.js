@@ -83,10 +83,10 @@ var getMissions = function() {
                             var diff = nbMissions - reply;
                             for (var i = 0; i < diff; i++) {
                                 var mission = missions[i];
-                                var contentMessage = `Nouvelle mission : ${mission.title} du ${mission.beginDate} au ${mission.endDate} \nDescription:\n${mission.description} !`;
+                                var contentMessage = `Nouvelle mission : ${mission.title} du ${mission.beginDate} au ${mission.endDate} ${mission.description ? '\nDescription:\n' + mission.description : ''}`;
                                 var message = createMessage(contentMessage);
                                 sendNotification(message, nbMissions);
-                            }
+                            };
                         }
                     });
                 } else {
