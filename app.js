@@ -50,7 +50,7 @@ var sendNotification = function(data, nbMission) {
     var req = https.request(optionOneSignal, function(res) {
         res.on('data', function(data) {
             logger.info("Notification envoyée");
-            redisClient.set('nbMissions', nbMission++);
+            redisClient.set('nbMissions', nbMission);
         });
     });
 
