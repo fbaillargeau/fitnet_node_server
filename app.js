@@ -70,30 +70,33 @@ var getMissions = function() {
         res.on('data', function(data) {
             content += data;
         }).on('end', function() {
-            //Récupération des missions + tri des missions par lotId (ordre de création décroissante)
-            var missions = _.orderBy(JSON.parse(content), ['lotId'], ['desc']);
-            var nbMissions = missions.length;
+            //Vérification du bon format du json
+            if (isJson(content)) {
+                //Récupération des missions + tri des missions par lotId (ordre de création décroissante)
+                var missions = _.orderBy(JSON.parse(content), ['lotId'], ['desc']);
+                var nbMissions = missions.length;
 
-            //Vérification de l'existance de la clé nbMissions
-            redisClient.exists('nbMissions', function(err, reply) {
-                if (reply === 1) {
-                    //La clé existe
-                    redisClient.get('nbMissions', function(err, reply) {
-                        if (reply !== nbMissions) {
-                            var diff = nbMissions - reply;
-                            for (var i = 0; i < diff; i++) {
-                                var mission = missions[i];
-                                var contentMessage = `Nouvelle mission : ${mission.title} du ${mission.beginDate} au ${mission.endDate} ${mission.description ? '\nDescription:\n' + mission.description : ''}`;
-                                var message = createMessage(contentMessage);
-                                sendNotification(message, nbMissions);
-                            };
-                        }
-                    });
-                } else {
-                    //La clé n'existe pas. Initialisation du compteur de missions
-                    redisClient.set('nbMissions', missions.length)
-                }
-            });
+                //Vérification de l'existance de la clé nbMissions
+                redisClient.exists('nbMissions', function(err, reply) {
+                    if (reply === 1) {
+                        //La clé existe
+                        redisClient.get('nbMissions', function(err, reply) {
+                            if (reply !== nbMissions) {
+                                var diff = nbMissions - reply;
+                                for (var i = 0; i < diff; i++) {
+                                    var mission = missions[i];
+                                    var contentMessage = `Nouvelle mission : ${mission.title} du ${mission.beginDate} au ${mission.endDate} ${mission.description ? '\nDescription:\n' + mission.description : ''}`;
+                                    var message = createMessage(contentMessage);
+                                    sendNotification(message, nbMissions);
+                                };
+                            }
+                        });
+                    } else {
+                        //La clé n'existe pas. Initialisation du compteur de missions
+                        redisClient.set('nbMissions', missions.length)
+                    }
+                });
+            }
         });
     });
 
@@ -103,6 +106,18 @@ var getMissions = function() {
 
     req.end();
 };
+
+//Permet de vérifier si le json est parsable
+isJson = function(json) {
+    try {
+        json = JSON.parse(json);
+        return true;
+    } catch (exception) {
+        logger.error("Erreur json")
+        logger.error(exception)
+        return false
+    }
+}
 
 //Permet de créer un message pour les notifications
 var createMessage = function(message) {
