@@ -5,6 +5,7 @@ var server = require('http').createServer(app);
 var redis = require('redis');
 var _ = require('lodash');
 var log4js = require('log4js');
+var https = require('https');
 
 //Création du logger
 var logger = log4js.getLogger();
@@ -44,13 +45,13 @@ var optionFitnet = {
 }
 
 //Permet d'envoyer des notifications
-var sendNotification = function(data, nbMission) {
+var sendNotification = function(data, nbMissions) {
 
     var https = require('https');
     var req = https.request(optionOneSignal, function(res) {
         res.on('data', function(data) {
             logger.info("Notification envoyée");
-            redisClient.set('nbMissions', nbMission);
+            redisClient.set('nbMissions', nbMissions);
         });
     });
 
@@ -64,7 +65,6 @@ var sendNotification = function(data, nbMission) {
 
 //Permet de récupérer les missions
 var getMissions = function() {
-    var https = require('https');
     var req = https.request(optionFitnet, function(res) {
         var content = '';
         res.on('data', function(data) {
@@ -133,6 +133,39 @@ server.listen(3123, function() {
     var interval = process.env.INTERVAL !== undefined ? process.env.INTERVAL : 60000;
     logger.info('Lancement de l\'application sur le port 3123')
 
+    //Vérification si le nombre de mission est inférieur à celui de la base de données
+    var req = https.request(optionFitnet, function(res) {
+        var content = '';
+        res.on('data', function(data) {
+            content += data;
+        }).on('end', function() {
+            //Vérification du bon format du json
+            if (isJson(content)) {
+                var nbMissions = JSON.parse(content).length;
+
+                //Vérification de l'existance de la clé nbMissions
+                redisClient.exists('nbMissions', function(err, reply) {
+                    if (reply === 1) {
+                        if (reply > nbMissions) {
+                            redisClient.set('nbMissions', nbMissions)
+                        }
+                    } else {
+                        //La clé n'existe pas. Initialisation du compteur de missions
+                        redisClient.set('nbMissions', nbMissions)
+                    }
+                });
+            }
+        });
+    });
+
+    req.on('error', function(e) {
+        logger.error(e);
+    });
+
+    req.end();
+
+
+    //Interval
     setInterval(function() {
         getMissions();
     }, interval)
