@@ -130,7 +130,7 @@ var createMessage = function(message) {
 
 //Lancement du serveur node sur le port 3123
 server.listen(3123, function() {
-    var interval = process.env.INTERVAL !== undefined ? process.env.INTERVAL : 60000;
+    var interval = process.env.INTERVAL !== undefined ? process.env.INTERVAL : 20000;
     logger.info('Lancement de l\'application sur le port 3123')
 
     //Vérification si le nombre de mission est inférieur à celui de la base de données
@@ -146,9 +146,11 @@ server.listen(3123, function() {
                 //Vérification de l'existance de la clé nbMissions
                 redisClient.exists('nbMissions', function(err, reply) {
                     if (reply === 1) {
-                        if (reply > nbMissions) {
-                            redisClient.set('nbMissions', nbMissions)
-                        }
+                        redisClient.get('nbMissions', function(err, reply) {
+                            if (reply > nbMissions) {
+                                redisClient.set('nbMissions', nbMissions)
+                            }
+                        })
                     } else {
                         //La clé n'existe pas. Initialisation du compteur de missions
                         redisClient.set('nbMissions', nbMissions)
