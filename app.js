@@ -14,6 +14,7 @@ logger.level = 'debug';
 //Création du client redis
 var redis_host = process.env.REDIS_HOST !== undefined ? process.env.REDIS_HOST : '192.168.99.100';
 var redis_port = process.env.REDIS_PORT !== undefined ? process.env.REDIS_PORT : 6379;
+var fitnet_host = process.env.FITNET_HOST !== undefined ? process.env.FITNET_HOST : 'palo-it.fitnetmanager.com';
 var redisClient = redis.createClient(redis_port, redis_host);
 
 //Headers pour les requêtes http
@@ -37,7 +38,7 @@ var optionOneSignal = {
 };
 
 var optionFitnet = {
-    host: "evaluation.fitnetmanager.com",
+    host: fitnet_host,
     port: 443,
     path: "/FitnetManager/rest/contracts/1",
     method: "GET",
